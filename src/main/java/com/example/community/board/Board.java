@@ -4,14 +4,10 @@ import com.example.community.common.BaseEntity;
 import com.example.community.user.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "BOARD")
-@Getter
+@Getter @Setter
 @NoArgsConstructor (access = AccessLevel.PROTECTED)
 @AllArgsConstructor (access = AccessLevel.PRIVATE)
 @Builder
@@ -27,10 +23,13 @@ public class Board extends BaseEntity {
             name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_board_user")
     )
     private User user;
+  /*  @Column(name = "author_id", nullable = false)
+    private Long authorId;*/
 
     @Column(name = "TITLE", nullable = false, length = 150)
     private String title;
 
+    @Lob
     @Column(name = "CONTENT", nullable = false, length = 1500)
     private String content;
 
@@ -40,4 +39,8 @@ public class Board extends BaseEntity {
 
     public void softDelete() { this.deleteYn = "Y"; }
 
+    public void applyUpdate(String newTitle, String newContent){
+        if (newTitle != null && !newTitle.isBlank()) this.title = newTitle;
+        if (newContent != null && !newContent.isBlank()) this.content = newContent;
+    }
 }
