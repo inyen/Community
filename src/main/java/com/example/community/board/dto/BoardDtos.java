@@ -2,13 +2,8 @@ package com.example.community.board.dto;
 
 import com.example.community.board.Board;
 import jakarta.validation.constraints.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
-@Builder
 public class BoardDtos {
 
     //작성 요청
@@ -44,4 +39,30 @@ public class BoardDtos {
             );
         }
     }
+
+    //상세 응답
+    public record DetailRes(
+            Long id, String title, String content,
+            Long userId, String userName,
+            LocalDateTime createdTime,
+            LocalDateTime updatedTime
+    ){
+        public static DetailRes from(Board b) {
+            return new DetailRes(
+                    b.getId(),
+                    b.getTitle(),
+                    b.getContent(),
+                    b.getUser().getId(),
+                    b.getUser().getUserName(),
+                    b.getCreatedTime(),
+                    b.getUpdatedTime()
+            );
+        }
+    }
+
+    //수정 요청
+    public record UpdateReq(
+            @Size(max = 150) String title,
+            @Size(max = 1500) String content
+    ) {}
 }
