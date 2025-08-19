@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class BoardController {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final BoardService boardService;
 
     //게시글 작성
     @PostMapping
@@ -43,5 +44,42 @@ public class BoardController {
     ) {
         return boardRepository.findByDeleteYn("N", pageable)
                 .map(BoardDtos.ListItem::from);
+    }
+
+    //게시글 상세: 회원/비회원 모두 접근
+    @GetMapping("/{id}")
+    public ResponseEntity<BoardDtos.DetailRes> detail(@PathVariable Long id) {
+        return ResponseEntity.ok(boardService.getDetail(id));
+    }
+
+    //게시글 수정: 작성자만
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> update(
+            @PathVariable Long id,
+            @Valid @RequestBody BoardDtos.UpdateReq req,
+            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+    ){
+        boardService.update(id, currentUserId, req);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> partialUpdate(
+            @PathVariable Long id,
+            @RequestBody BoardDtos.UpdateReq req,
+            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+    ){
+        boardService.update(id, currentUserId, req);
+        return ResponseEntity.noContent().build();
+    }
+
+    //게시글 삭제: 작성자만
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+    ){
+        boardService.delete(id, currentUserId);
+        return ResponseEntity.noContent().build();
     }
 }
