@@ -24,7 +24,7 @@ public class User extends BaseEntity {
     @Column(name = "USER_ID", nullable = false, length = 8) //로그인 아이디
     private String userId;
 
-    @Column(name = "PASSWORD", nullable = false, length = 15)  //비밀번호 평문 저장
+    @Column(name = "PASSWORD", nullable = false, length = 100)  //비밀번호 평문 저장, BCrypt 해시 길이는 60자
     private String password;
 
     @Column(name = "USER_NAME", nullable = false, length = 24)  //닉네임
