@@ -8,7 +8,6 @@ public class BoardDtos {
 
     //작성 요청
     public record CreateReq(
-            @NotNull Long userId,
             @NotBlank @Size(max = 150) String title,
             @NotBlank @Size(max = 1500) String content
     ) {}
