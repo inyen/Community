@@ -1,6 +1,7 @@
 package com.example.community.board;
 
 import com.example.community.board.dto.BoardDtos;
+import com.example.community.common.auth.LoginUser;
 import com.example.community.user.User;
 import com.example.community.user.UserRepository;
 import jakarta.validation.Valid;
@@ -21,14 +22,16 @@ public class BoardController {
 
     //게시글 작성
     @PostMapping
-    public ResponseEntity<BoardDtos.CreateRes> create(@Valid @RequestBody BoardDtos.CreateReq req) {
+    public ResponseEntity<BoardDtos.CreateRes> create(
+            @LoginUser Long loginUserId,
+            @Valid @RequestBody BoardDtos.CreateReq req) {
         //FK 확인
-        User writer = userRepository.findById(req.userId())
+        var user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다."));
 
-        Board saved = boardRepository.save(
+        var saved = boardRepository.save(
                 Board.builder()
-                        .user(writer)
+                        .user(user)
                         .title(req.title())
                         .content(req.content())
                         .deleteYn("N")
@@ -40,8 +43,7 @@ public class BoardController {
     //게시글 목록(deleteYn = 'N'만 페이징)
     @GetMapping
     public Page<BoardDtos.ListItem> list (
-            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return boardRepository.findByDeleteYn("N", pageable)
                 .map(BoardDtos.ListItem::from);
     }
@@ -56,20 +58,20 @@ public class BoardController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(
             @PathVariable Long id,
-            @Valid @RequestBody BoardDtos.UpdateReq req,
-            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+            @LoginUser Long loginUserId,
+            @Valid @RequestBody BoardDtos.UpdateReq req
     ){
-        boardService.update(id, currentUserId, req);
+        boardService.update(id, loginUserId, req);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Void> partialUpdate(
             @PathVariable Long id,
-            @RequestBody BoardDtos.UpdateReq req,
-            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+            @LoginUser Long loginUserId,
+            @RequestBody BoardDtos.UpdateReq req
     ){
-        boardService.update(id, currentUserId, req);
+        boardService.update(id, loginUserId, req);
         return ResponseEntity.noContent().build();
     }
 
@@ -77,9 +79,9 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader(value = "X-USER-ID", required = false) Long currentUserId
+            @LoginUser Long loginUserId
     ){
-        boardService.delete(id, currentUserId);
+        boardService.delete(id, loginUserId);
         return ResponseEntity.noContent().build();
     }
 }
