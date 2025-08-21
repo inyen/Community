@@ -1,7 +1,7 @@
 package com.example.community.user;
 
 import com.example.community.common.SessionConst;
-import com.example.community.user.dto.MeDtos;
+import com.example.community.user.dto.MyDtos;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/me")
-public class MeController {
-    private final MeService meService;
+public class MyController {
+    private final MyService meService;
 
     private Long currentUserId(HttpSession session) {
         Object uid = session.getAttribute(SessionConst.LOGIN_USER_ID);
@@ -23,20 +23,20 @@ public class MeController {
     }
 
     @GetMapping
-    public ResponseEntity<MeDtos.ProfileResponse> profile(HttpSession session) {
+    public ResponseEntity<MyDtos.ProfileResponse> profile(HttpSession session) {
         return ResponseEntity.ok(meService.getProfile(currentUserId(session)));
     }
 
     @PutMapping("/username")
     public ResponseEntity<Void> changeUserName(HttpSession session,
-                                               @Valid @RequestBody MeDtos.UpdateUserNameRequest req) {
+                                               @Valid @RequestBody MyDtos.UpdateUserNameRequest req) {
         meService.changeUserName(currentUserId(session), req);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/password")
     public ResponseEntity<Void> changePassword(HttpSession session,
-                                               @Valid @RequestBody MeDtos.ChangePasswordRequest req) {
+                                               @Valid @RequestBody MyDtos.ChangePasswordRequest req) {
         meService.changePassword(currentUserId(session), req);
         //비밀번호 변경 후 재로그인 요구
         session.invalidate();
@@ -45,7 +45,7 @@ public class MeController {
 
     @DeleteMapping
     public ResponseEntity<Void> withdraw(HttpSession session,
-                                         @Valid @RequestBody MeDtos.WithdrawRequest req) {
+                                         @Valid @RequestBody MyDtos.WithdrawRequest req) {
         meService.withdraw(currentUserId(session), req);
         session.invalidate();
         return ResponseEntity.noContent().build();
