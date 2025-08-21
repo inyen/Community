@@ -18,7 +18,7 @@ public class UserDtos {
             String password,
 
             @NotBlank
-            @Size(max = 8, message = "닉네임은 8자 이내여야 합니다.")
+            @Pattern(regexp = "^[a-zA-Z0-9가-힣]{2,8}$", message = "닉네임은 2~8자, 영문/숫자/한글만 가능합니다.")
             String userName
     ) {}
     public record CreateRes(
