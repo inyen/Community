@@ -34,6 +34,9 @@ public class User extends BaseEntity {
     private String deleteYn = "N";
 
     public void softDelete() { this.deleteYn = "Y"; }
+    public void setUserName(String userName) { this.userName = userName; }
+    public void setPassword(String password) { this.password = password; }
+
 
     public static User create(String userId, String password, String userName) {
         return User.builder()
