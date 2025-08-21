@@ -1,28 +1,26 @@
 package com.example.community.user;
 
 import com.example.community.common.PasswordService;
-import com.example.community.user.dto.MeDtos;
+import com.example.community.user.dto.MyDtos;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
-public class MeService {
+public class MyService {
     private final UserRepository userRepository;
     private final PasswordService passwordService;
 
     @Transactional(readOnly = true)
-    public MeDtos.ProfileResponse getProfile(Long id) {
+    public MyDtos.ProfileResponse getProfile(Long id) {
         User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
-        return new MeDtos.ProfileResponse(user.getUserId(), user.getUserName());
+        return new MyDtos.ProfileResponse(user.getUserId(), user.getUserName());
     }
 
     @Transactional
-    public void changeUserName(Long id, MeDtos.UpdateUserNameRequest req){
+    public void changeUserName(Long id, MyDtos.UpdateUserNameRequest req){
         if(userRepository.existsByUserName(req.userName())){
             throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
         }
@@ -32,7 +30,7 @@ public class MeService {
     }
 
     @Transactional
-    public void changePassword(Long id, MeDtos.ChangePasswordRequest req) {
+    public void changePassword(Long id, MyDtos.ChangePasswordRequest req) {
         User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
         if (!passwordService.matches(req.currentPassword(), user.getPassword())) {
@@ -42,7 +40,7 @@ public class MeService {
     }
 
     @Transactional
-    public void withdraw(Long id, MeDtos.WithdrawRequest req) {
+    public void withdraw(Long id, MyDtos.WithdrawRequest req) {
         User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
         if(!passwordService.matches(req.currentPassword(), user.getPassword())){
