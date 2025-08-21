@@ -24,16 +24,29 @@ public class AuthController {
     private final PasswordService passwordService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginDtos.LoginResponse> login(@Valid @RequestBody LoginDtos.LoginRequest req, HttpSession session) {
+    public ResponseEntity<LoginDtos.LoginResponse> login(
+            @Valid @RequestBody LoginDtos.LoginRequest req, HttpSession session) {
+        //아이디 존재 여부 확인
         User user = userRepository.findByUserId(req.userId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다.."));
-        if(!passwordService.matches(req.password(), user.getPassword())){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."));
+
+        //탈퇴 여부 분기
+        if("Y".equals(user.getDeleteYn())){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "탈퇴한 계정입니다.");
         }
-        //세션에 PK 저장
+
+        //비밀번호 검증
+        if(!passwordService.matches(req.password(), user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
+        }
+
+        //세션 저장 & 응답
         session.setAttribute(SessionConst.LOGIN_USER_ID, user.getId());
-        return ResponseEntity.ok(new LoginDtos.LoginResponse(user.getId(), user.getUserId(), user.getUserName()));
+        return ResponseEntity.ok(
+                new LoginDtos.LoginResponse(user.getId(), user.getUserId(), user.getUserName()));
     }
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpSession session) {
         session.invalidate();
