@@ -1,7 +1,10 @@
 package com.example.community.user.dto;
 
 import jakarta.validation.constraints.*;
-
+/*
+/api/me 계열 입출력 모델 + 규칙 검증
+비밀번호 규칙을 DTO 검증으로 통일해서 컨트롤러 진입 전에 걸러냄
+ */
 public class MyDtos {
     // 프로필 조회 응답
     public record ProfileResponse(
