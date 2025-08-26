@@ -9,13 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+/*
+내 정보 조회, 수정, 탈퇴
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/me")
 public class MyController {
-    private final MyService meService;
+    private final MyService myService;
 
+    //세션에서 id를 꺼내는 보조 메서드
     private Long currentUserId(HttpSession session) {
         Object uid = session.getAttribute(SessionConst.LOGIN_USER_ID);
         if (uid == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"로그인이 필요합니다.");
@@ -24,21 +27,21 @@ public class MyController {
 
     @GetMapping
     public ResponseEntity<MyDtos.ProfileResponse> profile(HttpSession session) {
-        return ResponseEntity.ok(meService.getProfile(currentUserId(session)));
+        return ResponseEntity.ok(myService.getProfile(currentUserId(session)));
     }
 
     @PutMapping("/username")
     public ResponseEntity<Void> changeUserName(HttpSession session,
                                                @Valid @RequestBody MyDtos.UpdateUserNameRequest req) {
-        meService.changeUserName(currentUserId(session), req);
+        myService.changeUserName(currentUserId(session), req);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/password")
     public ResponseEntity<Void> changePassword(HttpSession session,
                                                @Valid @RequestBody MyDtos.ChangePasswordRequest req) {
-        meService.changePassword(currentUserId(session), req);
-        //비밀번호 변경 후 재로그인 요구
+        myService.changePassword(currentUserId(session), req);
+        //비밀번호 변경 후 재로그인 요구(세션 종료)
         session.invalidate();
         return ResponseEntity.noContent().build();
     }
@@ -46,8 +49,8 @@ public class MyController {
     @DeleteMapping
     public ResponseEntity<Void> withdraw(HttpSession session,
                                          @Valid @RequestBody MyDtos.WithdrawRequest req) {
-        meService.withdraw(currentUserId(session), req);
-        session.invalidate();
+        myService.withdraw(currentUserId(session), req);
+        session.invalidate();   //계정 탈퇴 후 세션 종료
         return ResponseEntity.noContent().build();
     }
 }
