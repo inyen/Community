@@ -3,16 +3,18 @@ package com.example.community.board.dto;
 import com.example.community.board.Board;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
-
+/*
+생성/수정/응답 DTO 모음
+ */
 public class BoardDtos {
 
-    //작성 요청
+    //생성 요청: 우효성 확인
     public record CreateReq(
             @NotBlank @Size(max = 150) String title,
             @NotBlank @Size(max = 1500) String content
-    ) {}
+    ) { }
 
-    //작성 응답
+    //생성 응답
     public record CreateRes(
             Long id, String title, LocalDateTime createdTime
     ) {
@@ -61,7 +63,7 @@ public class BoardDtos {
 
     //수정 요청
     public record UpdateReq(
-            @Size(max = 150) String title,
-            @Size(max = 1500) String content
-    ) {}
+            @NotBlank @Size(max = 150) String title,
+            @NotBlank @Size(max = 1500) String content
+    ) { }
 }
