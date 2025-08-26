@@ -4,7 +4,9 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
-
+/*
+사용자 조회/중복 체크
+ */
 public interface UserRepository extends JpaRepository<User, Long> {
     //회원가입/중복 검사 & 로그인
     boolean existsByUserId(String userId);
