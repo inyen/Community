@@ -2,7 +2,6 @@ package com.example.community.board;
 
 import com.example.community.board.dto.BoardDtos;
 import com.example.community.common.auth.LoginUser;
-import com.example.community.user.User;
 import com.example.community.user.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +10,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+/*
+REST 엔드포인트, DTO ↔ 엔티티 변환 트리거
+ */
 
 @RestController
 @RequestMapping("/api/boards")
@@ -23,12 +25,15 @@ public class BoardController {
     //게시글 작성
     @PostMapping
     public ResponseEntity<BoardDtos.CreateRes> create(
-            @LoginUser Long loginUserId,
+            @LoginUser Long loginUserId, // 현재 로그인 사용자 id 주입
             @Valid @RequestBody BoardDtos.CreateReq req) {
-        //FK 확인
+        //FK 사용자 확인
+        //BAD_REQUEST -> 400
         var user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다."));
 
+
+        //게시글 작성 시 포함할 정보
         var saved = boardRepository.save(
                 Board.builder()
                         .user(user)
@@ -37,6 +42,7 @@ public class BoardController {
                         .deleteYn("N")
                         .build()
         );
+        //응답 DTO 변환, CREATED -> 201
         return ResponseEntity.status(HttpStatus.CREATED).body(BoardDtos.CreateRes.from(saved));
     }
 
@@ -61,17 +67,7 @@ public class BoardController {
             @LoginUser Long loginUserId,
             @Valid @RequestBody BoardDtos.UpdateReq req
     ){
-        boardService.update(id, loginUserId, req);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> partialUpdate(
-            @PathVariable Long id,
-            @LoginUser Long loginUserId,
-            @RequestBody BoardDtos.UpdateReq req
-    ){
-        boardService.update(id, loginUserId, req);
+        boardService.update(id, loginUserId, req); //401, 404, 403 확인
         return ResponseEntity.noContent().build();
     }
 
@@ -81,7 +77,7 @@ public class BoardController {
             @PathVariable Long id,
             @LoginUser Long loginUserId
     ){
-        boardService.delete(id, loginUserId);
+        boardService.delete(id, loginUserId); //401, 404, 403 확인
         return ResponseEntity.noContent().build();
     }
 }
