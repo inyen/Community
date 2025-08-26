@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-
+/*
+컨트롤러 전역 예외 처리
+(RestControllerAdvice 예외 -> Http Status 표준 에러 응답으로 변환)
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    //DTO @Valid 바인딩 에러 -> 400
+    //DTO @Valid 검증 실패 -> 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex){
         var fields = ex.getBindingResult()
@@ -24,7 +27,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    //DB 무경성 제약 위반 -> 409
+    //DB 무결성 제약 위반 -> 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(DataIntegrityViolationException ex){
         var body = ErrorResponse.of(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION",
@@ -32,7 +35,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
-    //우리가 던진 ResponseStatusException(404/401/403 등)
+    //우리가 던진 ResponseStatusException(404/401/403 등) 그대로 표시
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleRSE(ResponseStatusException ex) {
         // ex에서 HttpStatusCode(401/404)를 받아서 HttpStatus로 변환
