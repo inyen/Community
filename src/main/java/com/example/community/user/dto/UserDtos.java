@@ -4,7 +4,9 @@ import com.example.community.user.User;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
-
+/*
+회원가입 입출력 모델
+ */
 public class UserDtos {
     public record CreateReq(
             @NotBlank
