@@ -1,6 +1,6 @@
 package com.example.community.user;
 
-import com.example.community.common.SessionConst;
+import com.example.community.common.auth.LoginUser;
 import com.example.community.user.dto.MyDtos;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -14,43 +14,56 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/me")
+@RequestMapping("/api/users")
 public class MyController {
     private final MyService myService;
 
-    //세션에서 id를 꺼내는 보조 메서드
-    private Long currentUserId(HttpSession session) {
-        Object uid = session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (uid == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"로그인이 필요합니다.");
-        return (Long) uid;
+    @GetMapping("/me")
+    public ResponseEntity<MyDtos.ProfileResponse> me(@LoginUser Long loginUserId) {
+        return profile(loginUserId, loginUserId);
     }
 
-    @GetMapping
-    public ResponseEntity<MyDtos.ProfileResponse> profile(HttpSession session) {
-        return ResponseEntity.ok(myService.getProfile(currentUserId(session)));
+    @GetMapping("/{id}")
+    public ResponseEntity<MyDtos.ProfileResponse> profile(@PathVariable Long id,
+                                                          @LoginUser Long loginUserId) {
+        forbidIfNotOwner(id, loginUserId);
+        return ResponseEntity.ok(myService.getProfile(id));
     }
 
-    @PutMapping("/username")
-    public ResponseEntity<Void> changeUserName(HttpSession session,
+    @PatchMapping("/{id}/username")
+    public ResponseEntity<Void> changeUserName(@PathVariable Long id,
+                                               @LoginUser Long loginUserId,
                                                @Valid @RequestBody MyDtos.UpdateUserNameRequest req) {
-        myService.changeUserName(currentUserId(session), req);
+        forbidIfNotOwner(id, loginUserId);
+        myService.changeUserName(id, req);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/password")
-    public ResponseEntity<Void> changePassword(HttpSession session,
-                                               @Valid @RequestBody MyDtos.ChangePasswordRequest req) {
-        myService.changePassword(currentUserId(session), req);
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<Void> changePassword(@PathVariable Long id,
+                                               @LoginUser Long loginUserId,
+                                               @Valid @RequestBody MyDtos.ChangePasswordRequest req,
+                                               HttpSession session) {
+        forbidIfNotOwner(id, loginUserId);
+        myService.changePassword(id, req);
         //비밀번호 변경 후 재로그인 요구(세션 종료)
         session.invalidate();
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> withdraw(HttpSession session,
-                                         @Valid @RequestBody MyDtos.WithdrawRequest req) {
-        myService.withdraw(currentUserId(session), req);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> withdraw(@PathVariable Long id,
+                                         @LoginUser Long loginUserId,
+                                         @Valid @RequestBody MyDtos.WithdrawRequest req,
+                                         HttpSession session) {
+        forbidIfNotOwner(id, loginUserId);
+        myService.withdraw(id, req);
         session.invalidate();   //계정 탈퇴 후 세션 종료
         return ResponseEntity.noContent().build();
+    }
+
+    private static void forbidIfNotOwner(Long id, Long loginUserId) {
+        if(!id.equals(loginUserId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인만 접근 가능합니다.");
     }
 }

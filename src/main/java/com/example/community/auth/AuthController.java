@@ -8,6 +8,7 @@ import com.example.community.user.dto.LoginDtos;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,20 +16,22 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
+import static org.springframework.web.servlet.function.ServerResponse.status;
+
 /*
 로그인(세션 생성), 로그아웃(세션 만료) API
 */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/sessions")
 public class AuthController {
     private final UserRepository userRepository;
     private final PasswordService passwordService;
 
     //로그인 인증
-    @PostMapping("/login")
+    @PostMapping
     //아이디, 비밀번호 입력 검증
-    public ResponseEntity<LoginDtos.LoginResponse> login(
+    public ResponseEntity<LoginDtos.LoginResponse> create(
             @Valid @RequestBody LoginDtos.LoginRequest req, HttpSession session) {
         //아이디 존재 여부 확인
         User user = userRepository.findByUserId(req.userId())
@@ -48,26 +51,17 @@ public class AuthController {
         //세션 저장 & 응답
         //세션에는 PK(id)만 저장
         session.setAttribute(SessionConst.LOGIN_USER_ID, user.getId());
-        return ResponseEntity.ok(
-                new LoginDtos.LoginResponse(user.getId(), user.getUserId(), user.getUserName()));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, "/api/v1/sessions/current")
+                .body(new LoginDtos.LoginResponse(user.getId(), user.getUserId(), user.getUserName()));
     }
 
     //로그아웃 인증
-    @PostMapping("/logout")
+    @PostMapping("/current")
     //세션 무효화 -> 서버 측 인증 상태 즉시 종료
-    public ResponseEntity<Void> logout(HttpSession session) {
+    public ResponseEntity<Void> destory(HttpSession session) {
         session.invalidate();
         return ResponseEntity.noContent().build(); //noContent -> 204
-    }
-
-    //내 세션 확인
-    @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> me(HttpSession session) {
-        //세션에 사용자 식별자 있는지 확인
-        Object id = session.getAttribute(SessionConst.LOGIN_USER_ID);
-        if (id == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-        return ResponseEntity.ok(Map.of("userId", id));
     }
 }
