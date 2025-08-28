@@ -1,5 +1,6 @@
 package com.example.community.user;
 
+import com.example.community.common.SuccessResponse;
 import com.example.community.common.auth.LoginUser;
 import com.example.community.user.dto.MyDtos;
 import jakarta.servlet.http.HttpSession;
@@ -31,16 +32,16 @@ public class MyController {
     }
 
     @PatchMapping("/{id}/username")
-    public ResponseEntity<Void> changeUserName(@PathVariable Long id,
+    public ResponseEntity<SuccessResponse> changeUserName(@PathVariable Long id,
                                                @LoginUser Long loginUserId,
                                                @Valid @RequestBody MyDtos.UpdateUserNameRequest req) {
         forbidIfNotOwner(id, loginUserId);
         myService.changeUserName(id, req);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponse.of("닉네임이 변경되었습니다."));
     }
 
     @PatchMapping("/{id}/password")
-    public ResponseEntity<Void> changePassword(@PathVariable Long id,
+    public ResponseEntity<SuccessResponse> changePassword(@PathVariable Long id,
                                                @LoginUser Long loginUserId,
                                                @Valid @RequestBody MyDtos.ChangePasswordRequest req,
                                                HttpSession session) {
@@ -48,18 +49,18 @@ public class MyController {
         myService.changePassword(id, req);
         //비밀번호 변경 후 재로그인 요구(세션 종료)
         session.invalidate();
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponse.of("비밀번호가 변경되었습니다. 다시 로그인해 주세요."));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> withdraw(@PathVariable Long id,
+    public ResponseEntity<SuccessResponse> withdraw(@PathVariable Long id,
                                          @LoginUser Long loginUserId,
                                          @Valid @RequestBody MyDtos.WithdrawRequest req,
                                          HttpSession session) {
         forbidIfNotOwner(id, loginUserId);
         myService.withdraw(id, req);
         session.invalidate();   //계정 탈퇴 후 세션 종료
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponse.of("회원 탈퇴가 완료되었습니다."));
     }
 
     private static void forbidIfNotOwner(Long id, Long loginUserId) {

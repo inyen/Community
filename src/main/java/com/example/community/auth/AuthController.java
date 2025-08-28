@@ -2,6 +2,7 @@ package com.example.community.auth;
 
 import com.example.community.common.PasswordService;
 import com.example.community.common.SessionConst;
+import com.example.community.common.SuccessResponse;
 import com.example.community.user.User;
 import com.example.community.user.UserRepository;
 import com.example.community.user.dto.LoginDtos;
@@ -60,8 +61,8 @@ public class AuthController {
     //로그아웃 인증
     @PostMapping("/current")
     //세션 무효화 -> 서버 측 인증 상태 즉시 종료
-    public ResponseEntity<Void> destory(HttpSession session) {
+    public ResponseEntity<SuccessResponse> destory(HttpSession session) {
         session.invalidate();
-        return ResponseEntity.noContent().build(); //noContent -> 204
+        return ResponseEntity.ok(SuccessResponse.of("로그아웃이 완료되었습니다."));
     }
 }

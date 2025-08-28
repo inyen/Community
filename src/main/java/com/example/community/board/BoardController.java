@@ -1,6 +1,7 @@
 package com.example.community.board;
 
 import com.example.community.board.dto.BoardDtos;
+import com.example.community.common.SuccessResponse;
 import com.example.community.common.auth.LoginUser;
 import com.example.community.user.UserRepository;
 import jakarta.validation.Valid;
@@ -62,22 +63,22 @@ public class BoardController {
 
     //게시글 수정: 작성자만
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(
+    public ResponseEntity<SuccessResponse> update(
             @PathVariable Long id,
             @LoginUser Long loginUserId,
             @Valid @RequestBody BoardDtos.UpdateReq req
     ){
         boardService.update(id, loginUserId, req); //401, 404, 403 확인
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponse.of("게시글이 수정되었습니다."));
     }
 
     //게시글 삭제: 작성자만
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<SuccessResponse> delete(
             @PathVariable Long id,
             @LoginUser Long loginUserId
     ){
         boardService.delete(id, loginUserId); //401, 404, 403 확인
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponse.of("게시글이 삭제되었습니다."));
     }
 }
