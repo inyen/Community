@@ -1,12 +1,16 @@
 package com.example.community.user;
 
 import com.example.community.common.PasswordService;
+import com.example.community.common.SessionConst;
 import com.example.community.user.dto.MyDtos;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Objects;
 
 /*
 내 정보 비즈니스 로직
@@ -38,12 +42,26 @@ public class MyService {
 
     //현재 비밀번호 검증 후 새 비밀번호 해시로 교체
     @Transactional
-    public void changePassword(Long id, MyDtos.ChangePasswordRequest req) {
-        User user = userRepository.findActiveById(id)
+    public void changePassword(Long userid, Long requesterId, MyDtos.ChangePasswordRequest req) {
+        if(!Objects.equals(userid, requesterId)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+
+        User user = userRepository.findActiveById(userid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
         if (!passwordService.matches(req.currentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
         }
+
+        if(!req.newPassword().equals(req.confirmNewPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"새 비밀번호와 재입력 값이 일치하지 않습니다.");
+        }
+
+        if(passwordService.matches(req.newPassword(), user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호는 기존 비밀번호와 달라야합니다.");
+        }
+
         user.setPassword(passwordService.encode(req.newPassword()));
     }
 

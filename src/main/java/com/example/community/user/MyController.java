@@ -45,8 +45,10 @@ public class MyController {
                                                @LoginUser Long loginUserId,
                                                @Valid @RequestBody MyDtos.ChangePasswordRequest req,
                                                HttpSession session) {
+        //본인 확인(요청자=대상자)
         forbidIfNotOwner(id, loginUserId);
-        myService.changePassword(id, req);
+        //비민번호 변경
+        myService.changePassword(id, loginUserId, req);
         //비밀번호 변경 후 재로그인 요구(세션 종료)
         session.invalidate();
         return ResponseEntity.ok(SuccessResponse.of("비밀번호가 변경되었습니다. 다시 로그인해 주세요."));
